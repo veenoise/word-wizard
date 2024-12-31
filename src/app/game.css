@@ -1,0 +1,52 @@
+.avatar-container {
+    position: relative;
+
+}
+
+#left-hand {
+    position: relative;
+    left: 12%;
+    transform: rotate(-30deg);
+}
+
+#right-hand {
+    position: relative;
+    right: 12%;
+    transform: scaleX(-1) rotate(-30deg);
+}
+
+.hand {
+    top: -20%;
+}
+
+.move-left-hand {
+    animation: move-left-hand 2s ease forwards;
+}
+
+.move-right-hand {
+    animation: move-right-hand 2s ease forwards;
+}
+
+@keyframes move-left-hand {
+    from {
+        left: 12%;
+        top: -20%;
+        transform: rotate(-30deg);
+    } to {
+        left: 150%;
+        top: 40%;
+        transform: rotate(-75deg);
+    }
+}
+
+@keyframes move-right-hand {
+    from {
+        right: 12%;
+        top: -20%;
+        transform: scaleX(-1) rotate(-30deg);
+    } to {
+        right: 150%;
+        top: 40%;
+        transform: scaleX(-1) rotate(-75deg);
+    }
+}

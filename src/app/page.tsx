@@ -1,101 +1,329 @@
-import Image from "next/image";
+'use client'
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input"
+import { LucideSendHorizonal } from "lucide-react";
+import Game from "./Game";
+import React, { useContext, useEffect, useState } from "react";
+import { PulseLoader, ScaleLoader } from "react-spinners";
+import confetti from "canvas-confetti";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { useMusicContext } from "@/context";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  // Game states
+  const [challengeWord, setChallengeWord] = useState<string>('');
+  const [aiResult, setAiResult] = useState('');
+  const [waitingAi, setWaitingAi] = useState<boolean>(false);
+  const [waitingChallenge, setWaitingChallenge] = useState<boolean>(false);
+  const [isEnabledSend, setIsEnabledSend] = useState<boolean>(false);
+  const [userPrompt, setUserPrompt] = useState<string>('');
+  const musicContextContent = useMusicContext();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // UI
+  const { toast } = useToast();
+  const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(true);
+
+  // Player states
+  const [currentScore, setCurrentScore] = useState(0);
+  const [highScore, setHighScore] = useState(0);
+  const [playerError, setPlayerError] = useState<any>();
+  const [health, setHealth] = useState(3);
+
+  // Wizard statements
+  const wizardWinSays = [
+    "Curse your luck and skill! How dare you defy my power?!",
+    "This is outrageous! No mere mortal should wield such mastery!",
+    "You dare to triumph over me? I will not stand for this insolence!",
+    "Stop grinning, fool! Your victory will be short-lived, I assure you!",
+    "Bah! Even the gods mock me as you inch closer to glory!"
+  ]
+  const wizardLoseSays = [
+    "Oh, is that all you've got? Perhaps you'd like to surrender now?",
+    "Struggling, are we? How adorable! Do you need a moment to cry?",
+    "This is almost too easy. Perhaps I should give you a head start next time!",
+    "Pathetic! I've seen goblins with more fight than you!",
+    "You call that effort? My grandmother could best you, and she's a ghost!"
+  ]
+
+  useEffect(() => {
+    fetchRandomWord();
+
+    // Get highest score
+    if (localStorage.getItem("high-score") === null) {
+      localStorage.setItem("high-score", "0");
+    } else {
+      setHighScore(parseInt(localStorage.getItem("high-score") as string));
+    }
+  }, [])
+
+  const fetchRandomWord = async () => {
+    setWaitingChallenge(true);
+    const getRandomWord = await fetch('https://random-word-api.herokuapp.com/word?length=5');
+    const randomWord = await getRandomWord.json();
+    setChallengeWord(randomWord[0]);
+    setWaitingChallenge(false);
+  }
+  
+  const throwConfetti = () => {
+    const duration = 5 * 1000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+    const randomInRange = (min: number, max: number) =>
+      Math.random() * (max - min) + min;
+ 
+    const interval = window.setInterval(() => {
+      const timeLeft = animationEnd - Date.now();
+ 
+      if (timeLeft <= 0) {
+        return clearInterval(interval);
+      }
+ 
+      const particleCount = 50 * (timeLeft / duration);
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+      });
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+      });
+    }, 250);
+  }
+
+  const defeatConfetti = () => {
+    const duration = 5 * 1000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0, colors:["#FF0000", "#000000"] };
+
+    const randomInRange = (min: number, max: number) =>
+      Math.random() * (max - min) + min;
+ 
+    const interval = window.setInterval(() => {
+      const timeLeft = animationEnd - Date.now();
+ 
+      if (timeLeft <= 0) {
+        return clearInterval(interval);
+      }
+ 
+      const particleCount = 50 * (timeLeft / duration);
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+      });
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+      });
+    }, 250);
+  }
+
+  const userInput = (event:React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.value.replaceAll(' ', '').toLowerCase().includes(challengeWord) || event.target.value.replaceAll(' ', '').match(/[^A-Za-z ]+/gmi)) {
+      setIsEnabledSend(false);
+    } else if (event.target.value.split(/\s+/).length > 4) {
+      setIsEnabledSend(false);
+    } else if (event.target.value.length > 25) {
+      setIsEnabledSend(false);
+    } else if (event.target.value.trim() === "") {
+      setIsEnabledSend(false);
+    } else if (waitingAi || challengeWord === '') {
+      setIsEnabledSend(false);
+    } else if (health < 1)  {
+      setIsEnabledSend(false);
+    } else {
+      setUserPrompt(event.target.value);
+      setIsEnabledSend(true);
+    }
+  }
+
+  const newChallenge = () => {
+    // Reset states
+    setIsEnabledSend(false);
+    setTimeout(() => {
+      setChallengeWord('');
+      fetchRandomWord();
+      setAiResult('');
+      setIsEnabledSend(true)
+      setPlayerError(null);
+    }, 5000) 
+  }
+
+  const winLogic = () => {
+    // Show victory assets
+    throwConfetti();
+    musicContextContent?.soundEffect4.play();
+    setTimeout(() => {
+      toast({
+        title: wizardWinSays[Math.floor(Math.random() * 5)]
+      });
+    }, 0);
+
+    // Update score
+    setCurrentScore((prevScore) => {
+      const newScore = prevScore + 1;
+    
+      setHighScore((prevHighScore) => {
+        if (newScore > prevHighScore) {
+          localStorage.setItem("high-score", newScore.toString());
+          return newScore;
+        }
+        return prevHighScore;
+      });
+    
+      return newScore;
+    });
+
+    // Prepare next challenge
+    newChallenge();
+  }
+
+  const loseLogic = () => {
+    // Load lose assets
+    setTimeout(() => {
+      toast({
+        title: wizardLoseSays[Math.floor(Math.random() * 5)]
+      });
+    }, 0);
+
+    // Conditionally load assets based on health
+    setHealth(prevHealth => {
+      const newHealth = prevHealth - 1;
+      
+      // Sound effects when player loses
+      switch (newHealth) {
+        case 2:
+          musicContextContent?.soundEffect1.play();
+          break;
+        case 1:
+          musicContextContent?.soundEffect2.play();
+          break;
+        case 0:
+          musicContextContent?.soundEffect3.play();
+          defeatConfetti();
+          // Reset states after 5 seconds
+          setTimeout(() => {
+            setCurrentScore(0);
+            setHealth(3);
+          }, 5000);
+          break;
+      }
+      
+      return newHealth;
+    });    
+
+    // Prepare next challenge
+    newChallenge();
+  }
+
+  const sendPrompt = async () => {
+    // Make sure the challengeWord is loaded before fetching
+    if (challengeWord !== "") {
+      try {
+        setWaitingAi(true);
+        const fetchAI = await fetch(`https://oxnb4u6o32mdw5w4rmxwjcn74u0kdtbw.lambda-url.ap-southeast-1.on.aws/api/get/prompt?prompt=${userPrompt}&word=${challengeWord}`);
+        const fetchResult = await fetchAI.json();
+
+        setWaitingAi(false);
+        if ("error" in fetchResult) {
+          setPlayerError({"error": fetchResult.error});
+          return;
+        }
+
+        if ("result" in fetchResult) {
+          setAiResult(fetchResult.result);
+        }
+
+        if (fetchResult.result.replaceAll(" ", '').toLowerCase().match(`${challengeWord}`)) {
+          winLogic();
+        } else {
+          loseLogic();          
+        }
+      } catch (fetchError) {
+        console.error(`Error: ${fetchError}`);
+        setPlayerError({"error": fetchError});
+      }
+    } else {
+      setPlayerError({"error": "Please wait for the challenge word."});
+   }
+  }
+
+  return (
+    <div className="container mx-auto h-[calc(100dvh-60px)] md:h-[calc(100dvh-68px)] grid grid-rows-[64px_auto_200px] md:grid-rows-none md:grid-cols-[5fr_6fr] gap-4 px-4">
+      <AlertDialog open={isAlertDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Outwit the Wizard</AlertDialogTitle>
+            <AlertDialogDescription>
+            Craft a 4-word phrase to summon the wizard's response. The secret word must appear in their reply—choose wisely, or you lose!
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => {
+              setIsAlertDialogOpen(false);
+              musicContextContent?.bgMusic1.play();
+            }}>I understand</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <div 
+        id="random-word" 
+        className="border-transparent rounded bg-neutral-200 text-neutral-800 text-center flex flex-col justify-center items-center md:hidden"
+      >
+        <p>Your word is:</p>
+        <code>{challengeWord ? challengeWord : <PulseLoader size={4} />}</code>
+      </div>
+      <Game highScore={highScore} currentScore={currentScore} health={health} />
+      <div className="h-full flex flex-col justify-center gap-4">
+        <div 
+          id="random-word" 
+          className="border-transparent rounded bg-neutral-200 text-neutral-800 text-center md:flex flex-col justify-center items-center hidden p-2"
+        >
+          <p>Your word is:</p>
+          <code>{challengeWord ? challengeWord : <PulseLoader size={4} />}</code>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div id="game-logic" className="flex flex-col gap-4">
+          <code className="bg-yellow-900 p-2 border-transparent rounded min-h-[100px]">{waitingAi ? <ScaleLoader height={16} color={"#FFFFFF"} className="text-center" /> : aiResult ? aiResult : ""}</code>
+          <div className="flex w-full gap-2 flex justify-center items-center">
+            <Input 
+              onChange={userInput} 
+              onKeyDown={e => e.key === "Enter" && !(!isEnabledSend || waitingChallenge || waitingAi) ? sendPrompt() : null}
+              type="text" 
+              placeholder="Type your prompt here..." 
+              className="bg-neutral-50 text-neutral-800" 
+            />
+            <Button 
+              onClick={sendPrompt} 
+              disabled={!isEnabledSend || waitingChallenge || waitingAi}
+            >
+              <LucideSendHorizonal>
+              </LucideSendHorizonal>
+            </Button>
+          </div>
+          {
+            playerError?.error ? 
+            <code className="bg-red-500 p-2 border-transparent rounded">{playerError.error}</code> :
+            <></>
+          }
+        </div>
+      </div>
+      
     </div>
   );
 }
