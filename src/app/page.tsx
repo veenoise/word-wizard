@@ -4,20 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"
 import { LucideSendHorizonal } from "lucide-react";
 import Game from "./Game";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { PulseLoader, ScaleLoader } from "react-spinners";
 import confetti from "canvas-confetti";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
   AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useMusicContext } from "@/context";
 
@@ -38,9 +36,12 @@ export default function Home() {
   // Player states
   const [currentScore, setCurrentScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
-  const [playerError, setPlayerError] = useState<any>();
+  const [playerError, setPlayerError] = useState<TypePlayerError | null>();
   const [health, setHealth] = useState(3);
 
+  type TypePlayerError = {
+    error: string
+  }
   // Wizard statements
   const wizardWinSays = [
     "Curse your luck and skill! How dare you defy my power?!",
@@ -168,7 +169,9 @@ export default function Home() {
   const winLogic = () => {
     // Show victory assets
     throwConfetti();
-    musicContextContent?.soundEffect4.play();
+    if (musicContextContent?.soundEffect4) {
+      musicContextContent.soundEffect4.play()
+    };
     setTimeout(() => {
       toast({
         title: wizardWinSays[Math.floor(Math.random() * 5)]
@@ -209,13 +212,19 @@ export default function Home() {
       // Sound effects when player loses
       switch (newHealth) {
         case 2:
-          musicContextContent?.soundEffect1.play();
+          if (musicContextContent.soundEffect1) {
+            musicContextContent.soundEffect1.play();
+          }
           break;
         case 1:
-          musicContextContent?.soundEffect2.play();
+          if (musicContextContent.soundEffect2) {
+            musicContextContent.soundEffect2.play();
+          }
           break;
         case 0:
-          musicContextContent?.soundEffect3.play();
+          if (musicContextContent.soundEffect3) {
+            musicContextContent.soundEffect3.play();
+          }
           defeatConfetti();
           // Reset states after 5 seconds
           setTimeout(() => {
@@ -257,7 +266,7 @@ export default function Home() {
         }
       } catch (fetchError) {
         console.error(`Error: ${fetchError}`);
-        setPlayerError({"error": fetchError});
+        setPlayerError({"error": fetchError as string});
       }
     } else {
       setPlayerError({"error": "Please wait for the challenge word."});
@@ -271,13 +280,15 @@ export default function Home() {
           <AlertDialogHeader>
             <AlertDialogTitle>Outwit the Wizard</AlertDialogTitle>
             <AlertDialogDescription>
-            Craft a 4-word phrase to summon the wizard's response. The secret word must appear in their reply—choose wisely, or you lose!
+            Craft a 4-word phrase to summon the wizard&apos;s response. The secret word must appear in their reply—choose wisely, or you lose!
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction onClick={() => {
               setIsAlertDialogOpen(false);
-              musicContextContent?.bgMusic1.play();
+              if (musicContextContent.bgMusic1) {
+                musicContextContent.bgMusic1.play() 
+              }
             }}>I understand</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
