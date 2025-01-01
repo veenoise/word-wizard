@@ -1,5 +1,4 @@
 const express = require('express');
-const cors = require('cors');
 const serverless = require('serverless-http');
 const qs = require('qs');
 const bodyParser = require('body-parser');
@@ -11,7 +10,6 @@ const app = express();
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-app.use(cors());
 app.use(bodyParser.json());
 
 app.set('query parser', function (str) {

@@ -246,7 +246,7 @@ export default function Home() {
     if (challengeWord !== "") {
       try {
         setWaitingAi(true);
-        const fetchAI = await fetch(`https://oxnb4u6o32mdw5w4rmxwjcn74u0kdtbw.lambda-url.ap-southeast-1.on.aws/api/get/prompt?prompt=${userPrompt}&word=${challengeWord}`);
+        const fetchAI = await fetch(`https://d216u96he4pqp3.cloudfront.net/api/get/prompt?prompt=${userPrompt}&word=${challengeWord}`);
         const fetchResult = await fetchAI.json();
 
         setWaitingAi(false);
