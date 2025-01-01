@@ -7,7 +7,6 @@ import {
   SheetTitle,
   SheetTrigger,
   SheetClose,
-  SheetFooter
 } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"

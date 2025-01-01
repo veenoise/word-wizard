@@ -5,24 +5,14 @@ import Hand from "../../public/hand-pixelate.png";
 import Image from "next/image";
 import "./game.css";
 import { LucideHeart, LucideHeartCrack, LucideCrown } from "lucide-react";
-import { useEffect, useState } from "react";
 
-type typeGame = {
+type TypeGame = {
   highScore: number,
   currentScore: number,
   health: number
 }
 
-const Game:React.FC<typeGame>  = ({ highScore, currentScore, health }) => {
-  // Game functions
-  const moveLeftHand = (event:any) => {
-    event.target.classList += " move-left-hand";
-  }
-
-  const moveRightHand = (event:any) => {
-    event.target.classList += " move-right-hand";
-  }
-
+const Game:React.FC<TypeGame>  = ({ highScore, currentScore, health }) => {
   return (
     <div className="w-full flex flex-col justify-center">
       <div id="status" className="flex justify-between">

@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 import Marquee from "@/components/ui/marquee";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";

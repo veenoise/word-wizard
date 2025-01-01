@@ -1,34 +1,48 @@
-'use client'
+'use client';
 
-import React, { createContext, useContext } from 'react'
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
-const MusicContext = createContext<typeMusicContext|undefined>(undefined);
-type typeMusicContext = {
-  bgMusic1: HTMLAudioElement,
-  soundEffect1: HTMLAudioElement,
-  soundEffect2: HTMLAudioElement,
-  soundEffect3: HTMLAudioElement,
-  soundEffect4: HTMLAudioElement,
-}
+type TypeMusicContext = {
+  bgMusic1: HTMLAudioElement | null;
+  soundEffect1: HTMLAudioElement | null;
+  soundEffect2: HTMLAudioElement | null;
+  soundEffect3: HTMLAudioElement | null;
+  soundEffect4: HTMLAudioElement | null;
+};
 
-export const AudioContextWrapper = ({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>)  => {
-  const bgMusic1 = new Audio('/bg-music-1.ogg');
-  bgMusic1.loop = true;
-  const soundEffect1 = new Audio('/18_Thunder_02.wav');
-  const soundEffect2 = new Audio('/46_Poison_01.wav');
-  const soundEffect3 = new Audio('/21_Debuff_01.wav');
-  const soundEffect4 = new Audio('/48_Speed_up_02.wav');
+const MusicContext = createContext<TypeMusicContext | undefined>(undefined);
+
+export const AudioContextWrapper = ({ children }: { children: React.ReactNode }) => {
+  const [audioElements, setAudioElements] = useState<TypeMusicContext>({
+    bgMusic1: null,
+    soundEffect1: null,
+    soundEffect2: null,
+    soundEffect3: null,
+    soundEffect4: null,
+  });
+
+  useEffect(() => {
+    // Initialize audio objects only in the browser
+    setAudioElements({
+      bgMusic1: Object.assign(new Audio('/bg-music-1.ogg'), { loop: true }),
+      soundEffect1: new Audio('/18_Thunder_02.wav'),
+      soundEffect2: new Audio('/46_Poison_01.wav'),
+      soundEffect3: new Audio('/21_Debuff_01.wav'),
+      soundEffect4: new Audio('/48_Speed_up_02.wav'),
+    });
+  }, []);
+
   return (
-    <MusicContext.Provider value={{ bgMusic1, soundEffect1, soundEffect2, soundEffect3, soundEffect4 }}>
+    <MusicContext.Provider value={audioElements}>
       {children}
     </MusicContext.Provider>
-  )
-}
+  );
+};
 
 export function useMusicContext() {
-  return useContext(MusicContext);
+  const context = useContext(MusicContext);
+  if (!context) {
+    throw new Error('useMusicContext must be used within an AudioContextWrapper');
+  }
+  return context;
 }
