@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"
 import { LucideSendHorizonal } from "lucide-react";
 import Game from "./Game";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { PulseLoader, ScaleLoader } from "react-spinners";
 import confetti from "canvas-confetti";
 import { useToast } from "@/hooks/use-toast";
@@ -25,9 +25,11 @@ export default function Home() {
   const [aiResult, setAiResult] = useState('');
   const [waitingAi, setWaitingAi] = useState<boolean>(false);
   const [waitingChallenge, setWaitingChallenge] = useState<boolean>(false);
-  const [isEnabledSend, setIsEnabledSend] = useState<boolean>(false);
+  const [isEnabledSend, setIsEnabledSend] = useState<boolean>(true);
+  const [isValidInput, setIsValidInput] = useState<boolean>(false);
   const [userPrompt, setUserPrompt] = useState<string>('');
   const musicContextContent = useMusicContext();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // UI
   const { toast } = useToast();
@@ -71,8 +73,8 @@ export default function Home() {
 
   const fetchRandomWord = async () => {
     setWaitingChallenge(true);
-    const getRandomWord = await fetch('https://random-word-api.herokuapp.com/word?length=5');
-    const randomWord = await getRandomWord.json();
+    const getRandomWord = await fetch('https://random-word-api.herokuapp.com/word?length=5&lang=en');
+    const randomWord:[string] = await getRandomWord.json();
     setChallengeWord(randomWord[0]);
     setWaitingChallenge(false);
   }
@@ -137,20 +139,20 @@ export default function Home() {
 
   const userInput = (event:React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.value.replaceAll(' ', '').toLowerCase().includes(challengeWord) || event.target.value.replaceAll(' ', '').match(/[^A-Za-z ]+/gmi)) {
-      setIsEnabledSend(false);
+      setIsValidInput(false);
     } else if (event.target.value.split(/\s+/).length > 4) {
-      setIsEnabledSend(false);
+      setIsValidInput(false);
     } else if (event.target.value.length > 25) {
-      setIsEnabledSend(false);
+      setIsValidInput(false);
     } else if (event.target.value.trim() === "") {
-      setIsEnabledSend(false);
+      setIsValidInput(false);
     } else if (waitingAi || challengeWord === '') {
-      setIsEnabledSend(false);
+      setIsValidInput(false);
     } else if (health < 1)  {
-      setIsEnabledSend(false);
+      setIsValidInput(false);
     } else {
       setUserPrompt(event.target.value);
-      setIsEnabledSend(true);
+      setIsValidInput(true);
     }
   }
 
@@ -247,22 +249,27 @@ export default function Home() {
       try {
         setWaitingAi(true);
         const fetchAI = await fetch(`https://d216u96he4pqp3.cloudfront.net/api/get/prompt?prompt=${userPrompt}&word=${challengeWord}`);
-        const fetchResult = await fetchAI.json();
+        const fetchResult:TypeFetchResult = await fetchAI.json();
+
+        type TypeFetchResult = {
+          error?: string,
+          result?: string
+        }
 
         setWaitingAi(false);
-        if ("error" in fetchResult) {
+        if (fetchResult.error) {
           setPlayerError({"error": fetchResult.error});
           return;
         }
 
-        if ("result" in fetchResult) {
+        if (fetchResult.result) {
           setAiResult(fetchResult.result);
-        }
-
-        if (fetchResult.result.replaceAll(" ", '').toLowerCase().match(`${challengeWord}`)) {
-          winLogic();
-        } else {
-          loseLogic();          
+          
+          if (fetchResult.result.replaceAll(" ", '').toLowerCase().match(`${challengeWord}`)) {
+            winLogic();
+          } else {
+            loseLogic();          
+          }
         }
       } catch (fetchError) {
         if (Array.isArray(fetchError)) {
@@ -276,7 +283,12 @@ export default function Home() {
       }
     } else {
       setPlayerError({"error": "Please wait for the challenge word."});
-   }
+    }
+
+    // Clear the input value
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
   }
 
   return (
@@ -322,15 +334,16 @@ export default function Home() {
           <div className="flex w-full gap-2 flex justify-center items-center">
             <Input 
               onChange={userInput} 
-              onKeyDown={e => e.key === "Enter" && !(!isEnabledSend || waitingChallenge || waitingAi) ? sendPrompt() : null}
+              onKeyDown={e => e.key === "Enter" && !(!isValidInput || !isEnabledSend || waitingChallenge || waitingAi) ? sendPrompt() : null}
               type="text" 
               placeholder="Type your prompt here..." 
               className="bg-neutral-50 text-neutral-800" 
-              disabled={waitingChallenge || waitingAi}
+              ref={inputRef}
+              disabled={!isEnabledSend || waitingChallenge || waitingAi}
             />
             <Button 
               onClick={sendPrompt} 
-              disabled={!isEnabledSend || waitingChallenge || waitingAi}
+              disabled={!isValidInput || !isEnabledSend || waitingChallenge || waitingAi}
             >
               <LucideSendHorizonal>
               </LucideSendHorizonal>
