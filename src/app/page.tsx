@@ -326,6 +326,7 @@ export default function Home() {
               type="text" 
               placeholder="Type your prompt here..." 
               className="bg-neutral-50 text-neutral-800" 
+              disabled={waitingChallenge || waitingAi}
             />
             <Button 
               onClick={sendPrompt} 
