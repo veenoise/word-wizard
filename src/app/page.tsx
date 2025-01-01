@@ -298,9 +298,7 @@ export default function Home() {
           <AlertDialogHeader>
             <AlertDialogTitle>Outwit the Wizard</AlertDialogTitle>
             <AlertDialogDescription>
-              The wizard challenges you to summon their magic with a carefully crafted 4-word phrase. Your task is simple: use your wits to create a prompt that leads the wizard to include a <span className="font-bold">randomly chosen challenge word</span> in their reply. 
-              <br /><br />
-              You have a maximum of 25 characters to craft your phrase—choose wisely! If the wizard&apos;s response includes the challenge word, you win. If not, you lose!
+              Hail, brave conjurer! Craft a 4-word spell—25 letters max, alphabets only. Do not include the challenge word in your phrase. If the wizard unknowingly speaks it, victory is yours!
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
