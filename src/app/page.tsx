@@ -265,8 +265,14 @@ export default function Home() {
           loseLogic();          
         }
       } catch (fetchError) {
-        console.error(`Error: ${fetchError}`);
-        setPlayerError({"error": fetchError as string});
+        if (Array.isArray(fetchError)) {
+          // If it's an array, join the items into a single string (or handle it differently)
+          console.error('Fetch error:', fetchError.join(', '));
+          setPlayerError({ error: fetchError.join(', ') });
+        } else {
+          console.error('Fetch error:', fetchError);
+          setPlayerError({ error: `${fetchError}` }); // Or whatever string conversion is suitable
+        }
       }
     } else {
       setPlayerError({"error": "Please wait for the challenge word."});
@@ -280,7 +286,9 @@ export default function Home() {
           <AlertDialogHeader>
             <AlertDialogTitle>Outwit the Wizard</AlertDialogTitle>
             <AlertDialogDescription>
-            Craft a 4-word phrase to summon the wizard&apos;s response. The secret word must appear in their reply—choose wisely, or you lose!
+              The wizard challenges you to summon their magic with a carefully crafted 4-word phrase. Your task is simple: use your wits to create a prompt that leads the wizard to include a <span className="font-bold">randomly chosen challenge word</span> in their reply. 
+              <br /><br />
+              You have a maximum of 25 characters to craft your phrase—choose wisely! If the wizard&apos;s response includes the challenge word, you win. If not, you lose!
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
